@@ -1,0 +1,5 @@
+uvicorn
+gym
+fastapi
+websockets
+numpy==1.23.5

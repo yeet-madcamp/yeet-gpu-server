@@ -18,7 +18,7 @@ async def create_map(map_config: MapConfig, db: AsyncSession):
         map_type=map_config.map_type,
         map_owner_id=map_config.map_owner_id,
         map_owner_name=map_config.map_owner_name,
-        map_size=map_config.map_size.model_dump(),
+        map_size=map_config.map_size,
         agent_pos=map_config.agent_pos.model_dump(),
         exit_pos=map_config.exit_pos.model_dump(),
         wall_list=[pos.model_dump() for pos in map_config.wall_list],
@@ -78,14 +78,17 @@ async def get_map_by_map_id(map_id: str, db: AsyncSession):
 async def update_map(map_id: str, map_config: MapConfig, db: AsyncSession):
     existing_map = await get_map_by_map_id(map_id, db)
 
+    if not existing_map:
+        raise HTTPException(status_code=404, detail="Map not found")
+
     updated_map = MapModel(
         map_id=map_id,
-        map_url=map_config.map_url,
+        map_url=existing_map.map_url,
         map_name=map_config.map_name,
         map_type=map_config.map_type,
         map_owner_id=map_config.map_owner_id,
         map_owner_name=map_config.map_owner_name,
-        map_size=map_config.map_size.model_dump(),
+        map_size=map_config.map_size,
         agent_pos=map_config.agent_pos.model_dump(),
         exit_pos=map_config.exit_pos.model_dump(),
         wall_list=[pos.model_dump() for pos in map_config.wall_list],
@@ -99,11 +102,15 @@ async def update_map(map_id: str, map_config: MapConfig, db: AsyncSession):
     return MapSchema(map_id=map_id, map_url=updated_map.map_url, **map_config.model_dump())
 
 
-async def delete_map(map_id: str, db: AsyncSession):
-    existing_map = await get_map_by_map_id(map_id, db)
-    if not existing_map:
-        raise HTTPException(status_code=404, detail="Map not found")
+async def delete_map(user_id: str, map_id: str, db: AsyncSession):
+    print(f"Deleting map with ID: {map_id} for user: {user_id}")
+    target = await db.get(MapModel, map_id)
 
-    await db.delete(existing_map)
+    if not target:
+        raise HTTPException(status_code=404, detail="Map not found")
+    if target.map_owner_id != user_id:
+        raise HTTPException(status_code=403, detail="You do not have permission to delete this map")
+
+    await db.delete(target)
     await db.commit()
     return {"detail": "Map deleted successfully"}

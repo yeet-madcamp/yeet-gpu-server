@@ -1,18 +1,17 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Tuple
 
 
 class Position(BaseModel):
     x: int
     y: int
 
-
 class MapConfig(BaseModel):
     map_name: str
     map_type: str
     map_owner_id: str
     map_owner_name: str
-    map_size: Position
+    map_size: Tuple[int, int]
     agent_pos: Position
     exit_pos: Position
     wall_list: List[Position]

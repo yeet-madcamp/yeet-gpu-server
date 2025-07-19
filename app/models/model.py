@@ -1,14 +1,11 @@
 from sqlalchemy import Column, String, Float, Integer, JSON
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
-
+from app.database.base import Base
 
 class Model(Base):
     __tablename__ = "models"
 
-    id = Column(String, primary_key=True, index=True)  # model_id
-    url = Column(String, nullable=False)  # model_url
+    model_id = Column(String, primary_key=True, index=True)  # model_id
+    model_url = Column(String, nullable=False)  # model_url
 
     model_owner_id = Column(String, nullable=False)
     model_owner_name = Column(String, nullable=False)

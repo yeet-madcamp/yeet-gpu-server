@@ -52,10 +52,7 @@ async def update_map(map_id: str, map_config: MapConfig, db: AsyncSession = Depe
     return MapResponse(type=1103, **updated_map.model_dump())
 
 
-@router.delete("/{map_id}", status_code=204)
-async def delete_map(map_id: str, db: AsyncSession = Depends(get_db)):
-    existing_map = await crud_map.get_map_by_map_id(map_id, db)
-    if not existing_map:
-        raise HTTPException(status_code=404, detail="Map not found")
-    await crud_map.delete_map(map_id, db)
+@router.delete("/{user_id}/{map_id}", status_code=204)
+async def delete_map(user_id: str, map_id: str, db: AsyncSession = Depends(get_db)):
+    await crud_map.delete_map(user_id, map_id, db)
     return {"type": 1104, "isRemoved": True}

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.endpoints import learning
+from app.api.endpoints import map, user, websocket
 
 from app.database.base import Base
 from app.database import engine
@@ -27,7 +27,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(learning.router, prefix="/api/backend/learning")
+app.include_router(map.router, prefix="/api/backend/maps")
+app.include_router(user.router, prefix="/api/backend/user")  # 사용자 관련 라우터 추가
+app.include_router(websocket.router, prefix="/api/backend/ws")  # 웹소켓 관련 라우터 추가
 
 
 @app.on_event("startup")

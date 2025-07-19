@@ -4,7 +4,7 @@ from app.database.base import Base
 class MapModel(Base):
     __tablename__ = "maps"
 
-    id = Column(String, primary_key=True, index=True)
+    map_id = Column(String, primary_key=True, index=True)
     map_url = Column(String)
     map_name = Column(String)
     map_type = Column(String)
@@ -13,6 +13,7 @@ class MapModel(Base):
     map_size = Column(JSON)         # [x, y]
     agent_pos = Column(JSON)        # [x, y]
     exit_pos = Column(JSON)         # [x, y]
+    wall_list = Column(JSON)
     bit_list = Column(JSON)
     trap_list = Column(JSON)
     max_steps = Column(Integer)

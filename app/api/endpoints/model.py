@@ -15,8 +15,8 @@ async def get_models_by_user_id(user_id: str, db: AsyncSession = Depends(get_db)
 
 
 @router.post("/", response_model=ModelResponse)
-async def create_model(model: ModelResponse, db: AsyncSession = Depends(get_db)):
-    created_model = await crud_model.create_model(db, model)
+async def create_model(model: ModelConfig, db: AsyncSession = Depends(get_db)):
+    created_model = await crud_model.create_model(model, db)
     return ModelResponse(type=1201, **created_model.model_dump())
 
 

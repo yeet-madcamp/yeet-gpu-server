@@ -17,8 +17,6 @@ class ModelSchema(ModelConfig):
     model_url: str
 class ModelResponse(ModelSchema):
     type: int
-    model_id: str
-    model_url: str
 
 class ModelListResponse(BaseModel):
     type: int

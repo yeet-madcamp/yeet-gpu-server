@@ -46,7 +46,7 @@ async def get_model_by_model_id(model_id: str, db: AsyncSession):
     )
 
 
-async def create_model(db: AsyncSession, model_config: ModelConfig):
+async def create_model(model_config: ModelConfig, db: AsyncSession):
     model_id = f"model_{uuid.uuid4().hex[:6]}"
     model_url = f"https://example.com/models/{model_id}.zip"  # Placeholder URL, replace with actual logic if needed
     db_model = Model(

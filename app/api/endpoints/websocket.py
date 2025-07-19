@@ -1,31 +1,37 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.services.rl_environment import My2DEnv, GridPosition
-from sqlalchemy.future import select
-from app.models.map import MapModel
+
+from app.crud import crud_model, crud_map
+from app.services.rl_environment import My2DEnv, Size, GridPosition
+from app.database.session import get_db
 
 router = APIRouter()
 
 
-@router.websocket("/ws/learn/{map_id}")
-async def websocket_learning_endpoint(websocket: WebSocket, map_id: str):
+@router.websocket("/learn/{model_id}/{map_id}")
+async def websocket_learning_endpoint(websocket: WebSocket, model_id: str, map_id: str,
+                                      db: AsyncSession = Depends(get_db)):
     await websocket.accept()
 
-    async with AsyncSession() as db:
-        result = await db.execute(select(MapModel).where(MapModel.map_id == map_id))
-        m = result.scalar_one_or_none()
+    map_schema = await crud_map.get_map_by_map_id(map_id, db)
+    model_schema = await crud_model.get_model_by_model_id(model_id, db)
 
-    if not m:
+    if not map_schema:
         await websocket.close(code=4004, reason="Map not found")
         return
 
+    if not model_schema:
+        await websocket.close(code=4004, reason="Model not found")
+        return
+
+    print(map_schema)
     env = My2DEnv(
-        grid_size=GridPosition(*m.map_size),
-        walls=m.bit_list,
-        traps=m.trap_list,
-        goal=m.exit_pos,
-        agent_start=GridPosition(*m.agent_pos),
-        max_steps=m.max_steps
+        grid_size=Size(map_schema.map_size[0], map_schema.map_size[1]),
+        walls=[GridPosition(bit.x, bit.y) for bit in map_schema.bit_list],
+        traps=[GridPosition(trap.x, trap.y) for trap in map_schema.trap_list],
+        goal=GridPosition(map_schema.exit_pos.x, map_schema.exit_pos.y),
+        agent_start=GridPosition(map_schema.agent_pos.x, map_schema.agent_pos.y),
+        max_steps=map_schema.max_steps
     )
 
     try:

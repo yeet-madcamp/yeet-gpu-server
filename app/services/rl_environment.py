@@ -1,6 +1,13 @@
 import gym
 from gym import spaces
 import numpy as np
+from typing import List, Tuple
+
+class Size:
+    """2D 그리드의 크기를 나타내는 클래스"""
+    def __init__(self, width: int, height: int):
+        self.width = width
+        self.height = height
 
 class GridPosition:
     """2D 그리드에서의 위치를 나타내는 클래스"""
@@ -15,13 +22,13 @@ class My2DEnv(gym.Env):
     """사용자 정의 2D 강화학습 환경"""
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, grid_size=GridPosition(10, 10), walls=None, traps=None, goal=None, agent_start=GridPosition(0, 0),
+    def __init__(self, grid_size: Size = Size(9, 9), walls: List[GridPosition] = None, traps: List[GridPosition] = None, goal: GridPosition = None, agent_start=GridPosition(0, 0),
                  max_steps=100):
         super().__init__()
         self.grid_size = grid_size
         self.walls = walls if walls is not None else []
         self.traps = traps if traps is not None else []
-        self.goal = goal if goal is not None else [grid_size.x - 1, grid_size.y - 1]
+        self.goal = goal if goal is not None else [grid_size.width - 1, grid_size.height - 1]
         self.agent_start = agent_start
 
         self.max_steps = max_steps
@@ -32,7 +39,7 @@ class My2DEnv(gym.Env):
         # 상태 공간: [x, y] 위치
         self.observation_space = spaces.Box(
             low=np.array([0, 0], dtype=np.float32),
-            high=np.array([grid_size.x - 1, grid_size.y - 1], dtype=np.float32),
+            high=np.array([grid_size.width - 1, grid_size.height - 1], dtype=np.float32),
             shape=(2,),
             dtype=np.float32
         )
@@ -62,7 +69,7 @@ class My2DEnv(gym.Env):
             raise ValueError(f"Invalid action {action}")
 
         # 맵 범위 및 벽 충돌 검사
-        if 0 <= nx < self.grid_size.x and 0 <= ny < self.grid_size.y:
+        if 0 <= nx < self.grid_size.width and 0 <= ny < self.grid_size.height:
             if [nx, ny] not in self.walls:
                 self.state = np.array([nx, ny], dtype=np.float32)
 

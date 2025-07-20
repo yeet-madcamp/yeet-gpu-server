@@ -1,19 +1,16 @@
-import asyncio
 import websockets
-
+import asyncio
 
 async def test():
-    uri = "ws://localhost:8000/api/backend/ws/learn/model_24eda0/map_2a63df"
-    async with websockets.connect(uri) as websocket:
-        print("✅ WebSocket connected")
-
-        # 서버 응답 받기
-        while True:
-            msg = await websocket.recv()
-            print("📨 Received:", msg)
-            await websocket.send(
-                '{"action": 0, "state": []}'
-            )
-
+    async with websockets.connect("ws://localhost:8000/api/backend/ws/train_dqn/model_13962e/map_2a63df") as websocket:
+        try:
+            await websocket.send("start")
+            async for message in websocket:
+                # 처리
+                print(message)
+        except websockets.exceptions.ConnectionClosedOK:
+            print("서버가 정상적으로 연결을 종료했습니다.")
+        except Exception as e:
+            print("예외 발생:", e)
 
 asyncio.run(test())

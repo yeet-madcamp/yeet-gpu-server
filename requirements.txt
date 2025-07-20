@@ -12,3 +12,6 @@ asyncpg
 greenlet
 pydantic[email]
 stable-baselines3~=2.6.0
+torch~=2.7.1
+matplotlib~=3.9.4
+ipython~=8.18.1

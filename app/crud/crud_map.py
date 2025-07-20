@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.map import MapModel
-from app.schemas.map import MapConfig, MapResponse, MapSchema
+from app.schemas.map import MapConfig, MapSchema
 from sqlalchemy.future import select
 from fastapi import HTTPException
 
@@ -93,7 +93,7 @@ async def update_map(map_id: str, map_config: MapConfig, db: AsyncSession):
         exit_pos=map_config.exit_pos.model_dump(),
         wall_list=[pos.model_dump() for pos in map_config.wall_list],
         bit_list=[pos.model_dump() for pos in map_config.bit_list],
-        trap_list=[pos.model_dump for pos in map_config.trap_list],
+        trap_list=[pos.model_dump() for pos in map_config.trap_list],
         max_steps=map_config.max_steps
     )
 

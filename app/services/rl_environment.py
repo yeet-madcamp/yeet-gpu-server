@@ -1,9 +1,8 @@
 import gym
 from gym import spaces
 import numpy as np
-from typing import List, Tuple
+from typing import List
 from IPython.display import clear_output
-import matplotlib.pyplot as plt
 
 class Size:
     """2D 그리드의 크기를 나타내는 클래스"""

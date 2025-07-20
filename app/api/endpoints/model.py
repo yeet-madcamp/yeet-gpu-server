@@ -33,9 +33,9 @@ async def get_model_by_model_id(model_id: str, db: AsyncSession = Depends(get_db
 
 
 @router.post("/{model_id}", response_model=ModelResponse)
-async def update_map(model_id: str, model_config: ModelConfig, db: AsyncSession = Depends(get_db)):
-    existing_map = await crud_model.get_model_by_model_id(model_id, db)
-    if not existing_map:
+async def update_model(model_id: str, model_config: ModelConfig, db: AsyncSession = Depends(get_db)):
+    existing_model = await crud_model.get_model_by_model_id(model_id, db)
+    if not existing_model:
         raise HTTPException(status_code=404, detail="Model not found")
 
     updated_model = await crud_model.update_model(model_id, model_config, db)

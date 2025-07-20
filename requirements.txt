@@ -11,3 +11,4 @@ python-dotenv~=1.1.1
 asyncpg
 greenlet
 pydantic[email]
+stable-baselines3~=2.6.0

@@ -122,6 +122,6 @@ async def websocket_dqn_train(websocket: WebSocket, model_id: str, map_id: str, 
     except Exception as e:
         print(f"Other error: {e}")
     try:
-        await websocket.close(code=4000, reason=str(e))
+        await websocket.close()
     except RuntimeError:
         print("Cannot close websocket, already closed")

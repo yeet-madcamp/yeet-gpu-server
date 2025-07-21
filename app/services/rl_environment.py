@@ -4,7 +4,7 @@ import numpy as np
 from typing import List
 from IPython.display import clear_output
 
-MAX_BITS = 10  # 최대 비트 개수
+MAX_BITS = 3  # 최대 비트 개수
 
 class Size:
     def __init__(self, width: int, height: int):

@@ -5,9 +5,6 @@ import torch.nn as nn
 import torch.optim as optim
 from collections import deque
 
-MAX_BITS = 20  # 환경과 동일하게 최대 비트 개수 고정
-
-
 class DQN(nn.Module):
     def __init__(self, state_dim, action_dim):
         super().__init__()

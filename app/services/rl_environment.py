@@ -42,10 +42,16 @@ class My2DEnv(gym.Env):
                  max_steps=100):
         super().__init__()
         self.grid_size = grid_size
+
+        self.x_min = -(grid_size.width // 2)
+        self.x_max = grid_size.width // 2
+        self.y_min = -(grid_size.height // 2)
+        self.y_max = grid_size.height // 2
+
         self.walls = walls if walls is not None else []
         self.traps = traps if traps is not None else []
         self.bits = bits if bits is not None else []
-        self.goal = goal if goal is not None else GridPosition(grid_size.width - 1, grid_size.height - 1)
+        self.goal = goal if goal is not None else GridPosition(self.x_max, self.y_max)
         self.agent_start = agent_start
 
         self.max_steps = max_steps
@@ -57,8 +63,8 @@ class My2DEnv(gym.Env):
 
         # 상태 공간: [x, y] + 각 비트의 먹음 여부(최대 MAX_BITS개)
         self.observation_space = spaces.Box(
-            low=np.array([0, 0] + [0]*self.max_bits, dtype=np.float32),
-            high=np.array([grid_size.width - 1, grid_size.height - 1] + [1]*self.max_bits, dtype=np.float32),
+            low=np.array([self.x_min, self.y_min] + [0]*self.max_bits, dtype=np.float32),
+            high=np.array([self.x_max, self.y_max] + [1]*self.max_bits, dtype=np.float32),
             shape=(2 + self.max_bits,),
             dtype=np.float32
         )
@@ -73,14 +79,15 @@ class My2DEnv(gym.Env):
         return self._get_obs(), {}
 
     def _get_obs(self):
-        # [agent_x, agent_y, bit1_collected, ..., bitMAXBITS_collected]
         bit_flags = [0.0] * self.max_bits
         agent_pos = GridPosition(int(self.state[0]), int(self.state[1]))
         for i, bit in enumerate(self.bits):
             if i < self.max_bits:
                 bit_flags[i] = 1.0 if bit in self.collected_bits or agent_pos == bit else 0.0
-        # 남은 비트 자리는 0.0 패딩
         return np.array(list(self.state) + bit_flags, dtype=np.float32)
+
+    def in_grid(self, x, y):
+        return self.x_min <= x <= self.x_max and self.y_min <= y <= self.y_max
 
     def step(self, action):
         x, y = self.state.astype(int)
@@ -101,8 +108,8 @@ class My2DEnv(gym.Env):
         attempted_move_blocked = False
 
         # 맵 범위 및 벽 충돌 검사
-        if 0 <= nx < self.grid_size.width and 0 <= ny < self.grid_size.height:
-            if [nx, ny] not in self.walls:
+        if self.in_grid(nx, ny):
+            if GridPosition(nx, ny) not in self.walls:
                 self.state = np.array([nx, ny], dtype=np.float32)
             else:
                 attempted_move_blocked = True
@@ -121,20 +128,18 @@ class My2DEnv(gym.Env):
         for i, bit in enumerate(self.bits):
             if i < self.max_bits and agent_pos == bit and bit not in self.collected_bits:
                 self.collected_bits.add(bit)
-                reward += 0.5  # 비트 먹으면 추가 리워드
+                reward += 0.5
 
-        # 출구 오픈 조건: 모든 비트가 먹혀야 함
         exit_open = len(self.collected_bits) == len(self.bits)
 
-        # 목표 도달: 출구 오픈 상태에서만 성공 처리
         if agent_pos == self.goal:
             if exit_open:
                 reward = 1.0
                 terminated = True
             else:
-                reward = -0.3  # 출구 닫혀있을 때 도달하면 패널티
+                reward = -0.3
 
-        if [int(self.state[0]), int(self.state[1])] in self.traps:
+        if agent_pos in self.traps:
             reward = -5.0
             terminated = True
 
@@ -144,31 +149,46 @@ class My2DEnv(gym.Env):
 
         return self._get_obs(), reward, terminated, truncated, {}
 
+    def pos_to_idx(self, pos: GridPosition):
+        xi = pos.x - self.x_min
+        yi = pos.y - self.y_min
+        if not (0 <= xi < self.grid_size.width and 0 <= yi < self.grid_size.height):
+            return None, None
+        return xi, yi
+
     def render(self, mode='human'):
         grid = [['⬜' for _ in range(self.grid_size.width)] for _ in range(self.grid_size.height)]
 
         for wall in self.walls:
-            grid[wall.y][wall.x] = '⬛'
+            xi, yi = self.pos_to_idx(wall)
+            if xi is not None and yi is not None:
+                grid[yi][xi] = '⬛'
 
         for trap in self.traps:
-            grid[trap.y][trap.x] = '💀'
+            xi, yi = self.pos_to_idx(trap)
+            if xi is not None and yi is not None:
+                grid[yi][xi] = '💀'
 
-        # 비트
         for i, bit in enumerate(self.bits):
             if i < self.max_bits:
-                if bit in self.collected_bits:
-                    grid[bit.y][bit.x] = '✨'  # 먹힌 비트
-                else:
-                    grid[bit.y][bit.x] = '🔸'  # 남은 비트
+                xi, yi = self.pos_to_idx(bit)
+                if xi is not None and yi is not None:
+                    if bit in self.collected_bits:
+                        grid[yi][xi] = '✨'
+                    else:
+                        grid[yi][xi] = '🔸'
 
-        # 목표
-        grid[self.goal.y][self.goal.x] = '🏁'
+        xi, yi = self.pos_to_idx(self.goal)
+        if xi is not None and yi is not None:
+            grid[yi][xi] = '🏁'
 
         x, y = self.state.astype(int)
-        grid[y][x] = '🤖'
+        xi, yi = self.pos_to_idx(GridPosition(x, y))
+        if xi is not None and yi is not None:
+            grid[yi][xi] = '🤖'
 
         clear_output(wait=True)
-        for row in reversed(grid):
+        for row in grid[::-1]:  # y가 큰값이 위로 출력되도록
             print(' '.join(row))
         print(f"Step: {self.current_step} / {self.max_steps}")
 

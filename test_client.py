@@ -2,7 +2,7 @@ import websockets
 import asyncio
 
 async def test():
-    async with websockets.connect("ws://localhost:8000/api/backend/ws/train_dqn/model_6b088d/map_74fbc6") as websocket:
+    async with websockets.connect("ws://localhost:8000/api/backend/ws/train_dqn/model_6b088d/map_0a1964") as websocket:
         try:
             await websocket.send("start")
             async for message in websocket:

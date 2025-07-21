@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 
 from app.crud import crud_map
 from app.schemas.map import MapConfig, MapResponse, MapListResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.session import get_db
+import os
 
 router = APIRouter()
 
@@ -12,6 +13,19 @@ router = APIRouter()
 async def create_map(map_config: MapConfig, db: AsyncSession = Depends(get_db)):
     schema = await crud_map.create_map(map_config, db)
     return MapResponse(type=1101, **schema.model_dump())
+
+
+@router.post("/upload-image/{map_id}", status_code=201)
+async def upload_map_image(map_id: str, file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
+    existing_map = await crud_map.get_map_by_map_id(map_id, db)
+    if not existing_map:
+        raise HTTPException(status_code=404, detail="Map not found")
+
+    file_location = existing_map.map_url
+    with open(file_location, "wb") as buffer:
+        buffer.write(await file.read())
+
+    return {"type": 1105, "map_id": map_id, "file_location": file_location}
 
 
 @router.get("/", response_model=MapListResponse)

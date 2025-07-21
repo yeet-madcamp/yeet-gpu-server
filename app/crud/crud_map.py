@@ -6,11 +6,12 @@ from app.models.map import MapModel
 from app.schemas.map import MapConfig, MapSchema
 from sqlalchemy.future import select
 from fastapi import HTTPException
+import os
 
 
 async def create_map(map_config: MapConfig, db: AsyncSession):
     map_id = f"map_{uuid.uuid4().hex[:6]}"
-    map_url = f"https://example.com/maps/{map_id}.png"  # Placeholder URL, replace with actual logic if needed
+    map_url = f"{os.getenv('MAP_IMAGE_PATH')}/{map_id}.png"  # Placeholder URL, replace with actual logic if needed
     db_map = MapModel(
         map_id=map_id,
         map_url=map_url,

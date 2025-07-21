@@ -5,6 +5,9 @@ import torch.nn as nn
 import torch.optim as optim
 from collections import deque
 
+MAX_BITS = 20  # 환경과 동일하게 최대 비트 개수 고정
+
+
 class DQN(nn.Module):
     def __init__(self, state_dim, action_dim):
         super().__init__()
@@ -19,17 +22,19 @@ class DQN(nn.Module):
     def forward(self, x):
         return self.fc(x)
 
+
 class DQNAgent:
     def __init__(
-            self, state_dim, action_dim, device='cpu',
+            self, action_dim, state_dim, device='cpu',
             learning_rate=1e-3, batch_size=64, gamma=0.99, epsilon_start=1.0,
             epsilon_min=0.05, epsilon_decay=0.995, update_target_every=10
     ):
+        # 상태 차원: x, y + 최대 비트 개수
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.device = device
-        self.model = DQN(state_dim, action_dim).to(device)
-        self.target = DQN(state_dim, action_dim).to(device)
+        self.model = DQN(self.state_dim, action_dim).to(device)
+        self.target = DQN(self.state_dim, action_dim).to(device)
         self.target.load_state_dict(self.model.state_dict())
         self.memory = deque(maxlen=10000)
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)

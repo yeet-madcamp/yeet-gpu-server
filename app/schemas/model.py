@@ -1,16 +1,18 @@
 from pydantic import BaseModel
+
+
 class ModelConfig(BaseModel):
     model_owner_id: str
     model_owner_name: str
     model_name: str
     model_type: str
-    learning_rate: float
-    batch_size: int
-    gamma: float
-    epsilon_start: float
-    epsilon_min: float
-    epsilon_decay: float
-    update_target_every: int
+    learning_rate: float = 1e-3
+    batch_size: int = 64
+    gamma: float = 0.99
+    epsilon_start: float = 1.0
+    epsilon_min: float = 0.05
+    epsilon_decay: float = 0.995
+    update_target_every: int = 10
 
 
 class ModelSchema(ModelConfig):
@@ -37,8 +39,11 @@ class ModelSchema(ModelConfig):
             epsilon_decay=model.epsilon_decay,
             update_target_every=model.update_target_every,
         )
+
+
 class ModelResponse(ModelSchema):
     type: int
+
 
 class ModelListResponse(BaseModel):
     type: int

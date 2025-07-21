@@ -81,6 +81,7 @@ async def websocket_dqn_train(websocket: WebSocket, model_id: str, map_id: str, 
                 step += 1
 
                 # 여기서는 별도의 try-except 없이 바로 전송
+                await asyncio.sleep(0)
                 await websocket.send_json({
                     "event": "step",
                     "episode": episode,
@@ -94,7 +95,6 @@ async def websocket_dqn_train(websocket: WebSocket, model_id: str, map_id: str, 
                     "terminated": terminated,
                     "truncated": truncated
                 })
-                await asyncio.sleep(0)
 
                 env.render()
                 if terminated or truncated:
@@ -114,17 +114,17 @@ async def websocket_dqn_train(websocket: WebSocket, model_id: str, map_id: str, 
         torch.save(agent.model.state_dict(), model_path)
         await asyncio.sleep(0)
         await websocket.send_json({"event": "model_saved", "model_url": model_path})
-        print(f"Training completed in {end - start:.2f} seconds, total episodes: {episode + 1}")
+        print(f"Training completed in {end - start:.2f} seconds, total episodes: {episode + 1}", flush=True)
 
     except WebSocketDisconnect:
-        print("WebSocket disconnected by client")
+        print("WebSocket disconnected by client", flush=True)
     # 추가 close 불필요
     except Exception as e:
-        print(f"Other error: {e}")
+        print(f"Other error: {e}", flush=True)
     try:
         await websocket.close()
     except RuntimeError:
-        print("Cannot close websocket, already closed")
+        print("Cannot close websocket, already closed", flush=True)
 
 
 @router.websocket("/train_dqn/{model_id}/{map_id}/loop")
@@ -226,11 +226,11 @@ async def websocket_dqn_train_loop(websocket: WebSocket, model_id: str, map_id: 
             episode += 1
 
     except WebSocketDisconnect:
-        print("WebSocket disconnected by client")
+        print("WebSocket disconnected by client", flush=True)
     # 추가 close 불필요
     except Exception as e:
-        print(f"Other error: {e}")
+        print(f"Other error: {e}", flush=True)
     try:
         await websocket.close()
     except RuntimeError:
-        print("Cannot close websocket, already closed")
+        print("Cannot close websocket, already closed", flush=True)

@@ -42,7 +42,7 @@ class My2DEnv(gym.Env):
                  max_steps=100):
         super().__init__()
         self.grid_size = grid_size
-
+        self.success = 0
         self.x_min = -(grid_size.width // 2)
         self.x_max = grid_size.width // 2
         self.y_min = -(grid_size.height // 2)
@@ -104,7 +104,7 @@ class My2DEnv(gym.Env):
         else:
             raise ValueError(f"Invalid action {action}")
 
-        reward = -0.1
+        reward = -0.05
         attempted_move_blocked = False
 
         # 맵 범위 및 벽 충돌 검사
@@ -117,7 +117,7 @@ class My2DEnv(gym.Env):
             attempted_move_blocked = True
 
         if attempted_move_blocked:
-            reward += -0.1
+            reward += -0.15
 
         self.current_step += 1
         terminated = False
@@ -128,24 +128,27 @@ class My2DEnv(gym.Env):
         for i, bit in enumerate(self.bits):
             if i < self.max_bits and agent_pos == bit and bit not in self.collected_bits:
                 self.collected_bits.add(bit)
-                reward += 0.5
+                reward += 2.0
+                reward += (self.max_bits - len(self.collected_bits)) * 0.3
 
         exit_open = len(self.collected_bits) == len(self.bits)
 
         if agent_pos == self.goal:
             if exit_open:
-                reward = 1.0
+                reward += 10.0
+                reward += max(0.0, (self.max_steps - self.current_step) * 0.1)
                 terminated = True
+                self.success += 1
             else:
-                reward = -0.3
+                reward += -1.0
 
         if agent_pos in self.traps:
-            reward = -5.0
+            reward += -5.0
             terminated = True
 
         truncated = self.current_step >= self.max_steps
         if truncated:
-            reward = -1.0
+            reward += -2.0
 
         return self._get_obs(), reward, terminated, truncated, {}
 
@@ -190,7 +193,7 @@ class My2DEnv(gym.Env):
         clear_output(wait=True)
         for row in grid[::-1]:  # y가 큰값이 위로 출력되도록
             print(' '.join(row))
-        print(f"Step: {self.current_step} / {self.max_steps}")
+        print(f"Step: {self.current_step} / {self.max_steps} | Success: {self.success} | Collected Bits: {len(self.collected_bits)} / {self.max_bits}")
 
     def close(self):
         pass

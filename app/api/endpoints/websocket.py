@@ -206,7 +206,8 @@ async def websocket_dqn_train_loop(websocket: WebSocket, model_id: str, map_id: 
                     "loss": loss,
                     "epsilon": agent.epsilon,
                     "terminated": terminated,
-                    "truncated": truncated
+                    "truncated": truncated,
+                    "success": env.success
                 })
                 await asyncio.sleep(0)
 

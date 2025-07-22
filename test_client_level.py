@@ -32,7 +32,7 @@ async def train_maps(map_ids, test_websocket_path, test_model, stage_name):
                     # episode, success 값 추출
                     episode = msg_json.get("episode", episode)
                     success = msg_json.get("success", success)
-                    print(f"[{map_id}] episode: {episode}, success: {success}")
+                    print(f"[{map_id}] <{stage_name}> episode: {episode}, success: {success}")
 
                     # 성공 기준 도달 시 연결 종료
                     if success >= 10000:

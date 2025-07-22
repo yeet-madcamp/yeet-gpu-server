@@ -191,7 +191,7 @@ class My2DEnv(gym.Env):
             grid[yi][xi] = '🤖'
 
         clear_output(wait=True)
-        for row in grid[::-1]:  # y가 큰값이 위로 출력되도록
+        for row in grid[::-1]:
             print(' '.join(row), flush=True)
         print(f"Step: {self.current_step} / {self.max_steps} | Success: {self.success} | Collected Bits: {len(self.collected_bits)} / {self.max_bits}", flush=True)
 

@@ -5,6 +5,7 @@ from app.schemas.map import MapConfig, MapResponse, MapListResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.session import get_db
 import os
+from typing import List
 
 router = APIRouter()
 
@@ -13,6 +14,15 @@ router = APIRouter()
 async def create_map(map_config: MapConfig, db: AsyncSession = Depends(get_db)):
     schema = await crud_map.create_map(map_config, db)
     return MapResponse(type=1101, **schema.model_dump())
+
+
+@router.post("/list", response_model=MapResponse, status_code=201)
+async def create_map_list(map_config_list: List[MapConfig], db: AsyncSession = Depends(get_db)):
+    schemas = []
+    for map_config in map_config_list:
+        schema = await crud_map.create_map(map_config, db)
+        schemas.append(schema.model_dump())
+    return MapListResponse(type=1101, user_id='all', maps=schemas)
 
 
 @router.post("/upload-image/{map_id}", status_code=201)
@@ -38,7 +48,7 @@ async def get_all_maps(db: AsyncSession = Depends(get_db)):
     )
 
 
-@router.get("/{user_id}", response_model=MapListResponse)
+@router.get("/user/{user_id}", response_model=MapListResponse)
 async def get_maps_by_user(user_id: str, db: AsyncSession = Depends(get_db)):
     schemas = await crud_map.get_all_maps(db)
     return MapListResponse(

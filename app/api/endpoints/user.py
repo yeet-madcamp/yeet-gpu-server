@@ -14,9 +14,9 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     existing_user = result.scalar_one_or_none()
     if existing_user:
         raise HTTPException(status_code=400, detail="User with this email already exists")
-
+    user_id = uuid.uuid4().hex[:6]
     db_user = UserModel(
-        user_id=uuid.uuid4().hex[:6],  # Generate a short unique ID
+        user_id=user_id,  # Generate a short unique ID
         id=user.id,
         username=user.username,
     )
@@ -24,7 +24,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(db_user)
 
-    return UserResponse(**user.model_dump())
+    return UserResponse(user_id=user_id, **user.model_dump())
 
 
 @router.get("/users", response_model=list[UserResponse])
@@ -37,6 +37,15 @@ async def list_users(db: AsyncSession = Depends(get_db)):
 @router.get("/users/{user_id}", response_model=UserResponse)
 async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(UserModel).where(UserModel.user_id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return UserResponse(**user.__dict__)
+
+
+@router.get("/users/id/{id}", response_model=UserResponse)
+async def get_user_by_id(id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(UserModel).where(UserModel.id == id))
     user = result.scalar_one_or_none()
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")

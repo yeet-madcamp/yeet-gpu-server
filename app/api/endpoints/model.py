@@ -7,7 +7,7 @@ from app.crud import crud_model
 
 router = APIRouter()
 
-@router.get("/{user_id}", response_model=ModelListResponse)
+@router.get("/user/{user_id}", response_model=ModelListResponse)
 async def get_models_by_user_id(user_id: str, db: AsyncSession = Depends(get_db)):
     models = await crud_model.get_all_models(db)
     user_models = [m for m in models if m.model_owner_id == user_id]
